@@ -6,10 +6,6 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 var tmp = require('tmp');
 
-app.get('/', function(req, res) {
-  res.send('Hello World');
-});
-
 app.get('/api/people/:id', function(req, res) {
   //res.setHeader('Content-Type', 'text/plain');
   //res.type('json');
@@ -23,12 +19,12 @@ app.get('/api/people/:id', function(req, res) {
 });
 
 app.get('/api/people', function(req, res) {
-  var scores = {};
+  var scores = [];
   Person.find({}, function(err, doc) {
     var promises = doc.map(function(person) {
       return new Promise(function(resolve, reject) {
         tmp.dir(function(err, path) {
-          var inputQueries = 'i1\tHP:0000271\n' +
+          var inputQueries = 'i1\t' + req.query.q + '\n' +
             'i2\t' + person.Characteristics.join(';') + '\n';
           fs.writeFileSync(path + '/instance_annots.tsv', inputQueries);
 
@@ -65,13 +61,21 @@ app.get('/api/people', function(req, res) {
             console.log(stdout);
             var score = /i1\ti2\t([0-9.]+)/.exec(fs.readFileSync(path + '/output.tsv'))[1];
 
-            scores[person._id] = score;
+            scores.push({name: person._id, value: score});
             resolve();
           });
         });
       });
     });
     Promise.all(promises).then(function() {
+      scores.sort(function(x, y) {
+        if (x.value < y.value)
+          return 1;
+        else if (x.value > y.value)
+          return -1;
+        else
+          return 0;
+      });
       res.json(scores);
     });
   });
