@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var Person = require('./models/person');
 var Promise = require('es6-promise').Promise;
+var Term = require('./models/term');
 var exec = require('child_process').exec;
 var fs = require('fs');
 var tmp = require('tmp');
@@ -52,8 +53,17 @@ app.get('/api/people', function(req, res) {
             if (!score) {
               return reject();
             }
+            score = parseFloat(score[1]);
 
-            resolve({name: person._id, value: score[1]});
+            Promise.all(person.Characteristics.map(function(characteristicId) {
+              return new Promise(function(resolve, reject) {
+                Term.findOne({_id: characteristicId}, function(err, characteristic) {
+                  resolve(characteristic.Name);
+                });
+              });
+            })).then(function(characteristics) {
+              resolve({name: person._id, value: score, characteristics: characteristics});
+            });
           });
         });
       });
