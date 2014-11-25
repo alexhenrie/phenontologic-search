@@ -6,20 +6,7 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 var tmp = require('tmp');
 
-app.get('/api/people/:id', function(req, res) {
-  //res.setHeader('Content-Type', 'text/plain');
-  //res.type('json');
-  Person.findById(req.params.id, function(err, doc) {
-    if (err) {
-      res.json(err);
-      return;
-    }
-    res.json(doc);
-  });
-});
-
 app.get('/api/people', function(req, res) {
-  var scores = [];
   Person.find({}, function(err, doc) {
     var promises = doc.map(function(person) {
       return new Promise(function(resolve, reject) {
@@ -57,17 +44,21 @@ app.get('/api/people', function(req, res) {
           fs.writeFileSync(path + '/sml-xmlconf.xml', xmlConf);
 
           exec('java -jar ' + __dirname + '/sml-toolkit-0.9.jar -t sm -xmlconf sml-xmlconf.xml', {cwd: path}, function callback(error, stdout, stderr) {
-            console.log('execution complete');
-            console.log(stdout);
-            var score = /i1\ti2\t([0-9.]+)/.exec(fs.readFileSync(path + '/output.tsv'))[1];
+            if (error) {
+              return reject(error.code);
+            }
 
-            scores.push({name: person._id, value: score});
-            resolve();
+            var score = /i1\ti2\t([0-9.]+)/.exec(fs.readFileSync(path + '/output.tsv'));
+            if (!score) {
+              return reject();
+            }
+
+            resolve({name: person._id, value: score[1]});
           });
         });
       });
     });
-    Promise.all(promises).then(function() {
+    Promise.all(promises).then(function(scores) {
       scores.sort(function(x, y) {
         if (x.value < y.value)
           return 1;
@@ -77,9 +68,14 @@ app.get('/api/people', function(req, res) {
           return 0;
       });
       res.json(scores);
+    }).catch(function(code) {
+      res.status(500).send('Error code: ' + code);
     });
   });
 });
+
+app.use(express.static(__dirname + '/assets'));
+app.use('/dist', express.static(__dirname + '/dist'));
 
 var server = app.listen(3000, function() {
     console.log('Listening on port %d', server.address().port);
