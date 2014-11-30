@@ -84,6 +84,24 @@ app.get('/api/people', function(req, res) {
   });
 });
 
+app.get('/api/terms', function(req, res) {
+  if (!req.query.q) {
+    res.status(500).send();
+    return;
+  }
+
+  var regex = new RegExp(req.query.q.replace(/([\\{}()|.?*+\-\^$\[\]])/g, '\\$1'));
+  Term.find({}, function(err, doc) {
+    doc = doc.filter(function(row) {
+      return regex.test(row.Name) || regex.test(row._id);
+    });
+    doc = doc.map(function(row) {
+      return {id: row._id, name: row.Name}
+    });
+    res.json(doc);
+  });
+});
+
 app.use(express.static(__dirname + '/assets'));
 app.use('/dist', express.static(__dirname + '/dist'));
 

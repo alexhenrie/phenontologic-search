@@ -1,10 +1,12 @@
 var React = require('react');
 var {Navigation, RouteHandler} = require('react-router');
+var Input = require('./input');
 
 module.exports = React.createClass({
   submitHandler() {
-    var query = this.refs.query.getDOMNode().value;
-    this.transitionTo('search', {query});
+    this.transitionTo('search', {query: this.refs.query.state.selected.map(function(option) {
+      return option.id;
+    }).join(';')});
   },
   mixins: [Navigation],
   render() {
@@ -12,10 +14,10 @@ module.exports = React.createClass({
       <div>
         <nav className="navbar navbar-default">
           <div className="container-fluid">
-            <div className="navbar-brand" style={{float:"left"}}>Phenontologic Search</div>
+            <div className="navbar-brand" style={{float:"left"}}><a href="/">Phenontologic Search</a></div>
             <div className="navbar-header">
               <form onSubmit={this.submitHandler} className="navbar-form navbar-left" role="search">
-                <input className="form-control" ref="query" type="text" defaultValue={this.props.query} style={{width:"600px", marginRight:"10px"}} />
+                <Input ref="query"/>
                 <select className="form-control" ref="metric" style={{marginRight:"10px"}}>
                   <option>SimUI</option>
                 </select>
