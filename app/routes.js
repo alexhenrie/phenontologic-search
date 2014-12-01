@@ -5,6 +5,6 @@ var App = require('./components/app');
 
 module.exports = (
   <Route handler={App} path="/">
-    <Route name="search" path="/search/:query" handler={Search} />
+    <Route name="search" path="/search/:query/:metric" handler={Search} />
   </Route>
 );

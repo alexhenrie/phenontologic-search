@@ -8,7 +8,7 @@ module.exports = React.createClass({
   getResults() {
     this.setState({loading: true});
     this.startTime = Date.now();
-    request.get('/api/people?q=' + this.props.query, (error, result) => {
+    request.get('/api/people?query=' + this.props.query + '&metric=' + this.props.metric, (error, result) => {
       if (error) {
         return;
       }

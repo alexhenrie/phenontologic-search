@@ -7,10 +7,20 @@ var without = require('lodash-node/modern/arrays/without');
 
 module.exports = React.createClass({
   componentDidMount() {
+    if (this.props.defaultValue) {
+      this.props.defaultValue.split(';').forEach((term) => {
+        request.get('/api/term?query=' + term, (error, result) => {
+          if (error)
+            return;
 
-  },
-  componentWillReceiveProps() {
+          if (!result.body)
+            return;
 
+          result.body.name += ' [' + result.body.id + ']';
+          this.handleSelect(result.body);
+        });
+      });
+    }
   },
   getInitialState() {
     return {
@@ -24,7 +34,7 @@ module.exports = React.createClass({
     });
   },
   handleInput(userInput) {
-    request.get('/api/terms?q=' + userInput, (error, result) => {
+    request.get('/api/terms?query=' + userInput, (error, result) => {
       if (error) {
         return;
       }

@@ -12,10 +12,29 @@ app.get('/api/people', function(req, res) {
     var promises = doc.map(function(person) {
       return new Promise(function(resolve, reject) {
         tmp.dir(function(err, path) {
-          var inputQueries = 'i1\t' + req.query.q + '\n' +
+          var inputQueries = 'i1\t' + req.query.query + '\n' +
             'i2\t' + person.Characteristics.join(';') + '\n';
           fs.writeFileSync(path + '/instance_annots.tsv', inputQueries);
 
+          var metricFlags = {
+            ali:      'SIM_GROUPWISE_DAG_ALI_DEANE',
+            bader:    'SIM_FRAMEWORK_DAG_SET_BADER_2003',
+            blanquet: 'SIM_FRAMEWORK_DAG_SET_BRAUN_BLANQUET_1932',
+            dice:     'SIM_FRAMEWORK_DAG_SET_DICE_1945',
+            knappe:   'SIM_FRAMEWORK_DAG_SET_KNAPPE_2004',
+            korbel:   'SIM_FRAMEWORK_DAG_SET_KORBEL_2002',
+            lee:      'SIM_GROUPWISE_DAG_LEE_2004',
+            maryland: 'SIM_FRAMEWORK_DAG_SET_MARYLAND_BRIDGE_2003',
+            nto:      'SIM_GROUPWISE_DAG_NTO',
+            nto_max:  'SIM_GROUPWISE_DAG_NTO_MAX',
+            ochiai:   'SIM_FRAMEWORK_DAG_SET_OCHIAI_1957',
+            simlp:    'SIM_GROUPWISE_DAG_LP',
+            simpson:  'SIM_FRAMEWORK_DAG_SET_SIMPSON_1960',
+            simui:    'SIM_GROUPWISE_DAG_UI',
+            sokal:    'SIM_FRAMEWORK_DAG_SET_SOKAL_SNEATH_1963',
+            to:       'SIM_GROUPWISE_DAG_TO',
+            tversky:  'SIM_FRAMEWORK_DAG_SET_TVERSKY_1977',
+          };
           var xmlConf = '<?xml version="1.0" encoding="UTF-8"?>\
 <sglib>\
     <opt threads="1" />\
@@ -37,7 +56,7 @@ app.get('/api/people', function(req, res) {
     <sml module="sm" graph="http://bio/">\
         <opt_module threads="1" />\
         <measures type="groupwise">\
-            <measure id="ui" flag="SIM_GROUPWISE_DAG_UI" />\
+            <measure id="" flag="' + metricFlags[req.query.metric] + '" />\
         </measures>\
         <queries id="query" type="oTOo" file="' + __dirname + '/input_queries.tsv" output="' + path + '/output.tsv" noAnnots="set=-1" notFound="exclude" output_basename="false" uri_prefix="http://bio/" />\
     </sml>\
@@ -84,13 +103,24 @@ app.get('/api/people', function(req, res) {
   });
 });
 
-app.get('/api/terms', function(req, res) {
-  if (!req.query.q) {
+app.get('/api/term', function(req, res) {
+  if (!req.query.query) {
     res.status(500).send();
     return;
   }
 
-  var regex = new RegExp(req.query.q.replace(/([\\{}()|.?*+\-\^$\[\]])/g, '\\$1'));
+  Term.findOne({_id: req.query.query}, function(err, row) {
+    res.json({id: row._id, name: row.Name});
+  });
+});
+
+app.get('/api/terms', function(req, res) {
+  if (!req.query.query) {
+    res.status(500).send();
+    return;
+  }
+
+  var regex = new RegExp(req.query.query.replace(/([\\{}()|.?*+\-\^$\[\]])/g, '\\$1'), 'i');
   Term.find({}, function(err, doc) {
     doc = doc.filter(function(row) {
       return regex.test(row.Name) || regex.test(row._id);
