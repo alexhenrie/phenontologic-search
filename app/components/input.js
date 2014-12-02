@@ -39,6 +39,9 @@ module.exports = React.createClass({
     this.debouncedSearch(userInput);
   },
   handleSelect(value, combobox) {
+    if (!value.id || !value.name)
+      return;
+
     this.setState({
       selected: this.state.selected.concat([value]),
     });
