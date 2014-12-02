@@ -35,9 +35,12 @@ module.exports = React.createClass({
       return (
         <tr key={result.name}>
           <td>
-            {result.name} {result.value.toFixed(3)}<br/>
-            {result.characteristics.join(', ').toLowerCase()}
+            <div style={{fontSize:'larger'}}>{result.name}</div>
+            {result.characteristics.map(function(characteristic) {
+              return <span className="label label-primary" style={{display:'inline-block',fontSize:'small',margin:'3px'}}>{characteristic}</span>
+            })}
           </td>
+          <td>{result.value.toFixed(3)}</td>
         </tr>
       );
     })
