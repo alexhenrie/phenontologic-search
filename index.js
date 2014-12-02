@@ -74,13 +74,20 @@ app.get('/api/people', function(req, res) {
             }
             score = parseFloat(score[1]);
 
+            //return the person ID, score, and description of characteristics
             Promise.all(person.Characteristics.map(function(characteristicId) {
               return new Promise(function(resolve, reject) {
-                Term.findOne({_id: characteristicId}, function(err, characteristic) {
-                  resolve(characteristic.Name);
+                Term.findOne({_id: characteristicId}, function(err, row) {
+                  if (err || !row)
+                    resolve();
+                  else
+                    resolve(row.Name);
                 });
               });
             })).then(function(characteristics) {
+              characteristics = characteristics.filter(function(characteristic) {
+                return characteristic;
+              });
               resolve({name: person._id, value: score, characteristics: characteristics});
             });
           });
