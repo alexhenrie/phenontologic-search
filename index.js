@@ -74,14 +74,14 @@ app.get('/api/people', function(req, res) {
             }
             score = parseFloat(score[1]);
 
-            //return the person ID, score, and description of characteristics
+            //return the person ID, score, and characteristics
             Promise.all(person.Characteristics.map(function(characteristicId) {
               return new Promise(function(resolve, reject) {
                 Term.findOne({_id: characteristicId}, function(err, row) {
                   if (err || !row)
                     resolve();
                   else
-                    resolve(row.Name);
+                    resolve({id: characteristicId, name: row.Name});
                 });
               });
             })).then(function(characteristics) {

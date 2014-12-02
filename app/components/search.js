@@ -37,7 +37,7 @@ module.exports = React.createClass({
           <td>
             <div style={{fontSize:'larger'}}>{result.name}</div>
             {result.characteristics.map(function(characteristic) {
-              return <span className="label label-primary" style={{display:'inline-block',fontSize:'small',margin:'3px'}}>{characteristic}</span>
+              return <a className="label label-primary" href={'http://www.human-phenotype-ontology.org/hpoweb/showterm?id=' + characteristic.id} style={{display:'inline-block',fontSize:'small',margin:'3px'}}>{characteristic.name}</a>
             })}
           </td>
           <td>{result.value.toFixed(3)}</td>
