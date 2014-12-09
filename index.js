@@ -70,7 +70,8 @@ app.get('/api/people', function(req, res) {
 
             var score = /i1\ti2\t([0-9.]+)/.exec(fs.readFileSync(path + '/output.tsv'));
             if (!score) {
-              return reject();
+              resolve();
+              return;
             }
             score = parseFloat(score[1]);
 
@@ -95,6 +96,9 @@ app.get('/api/people', function(req, res) {
       });
     });
     Promise.all(promises).then(function(scores) {
+      scores = scores.filter(function(score) {
+        return score;
+      });
       scores.sort(function(x, y) {
         if (x.value < y.value)
           return 1;
